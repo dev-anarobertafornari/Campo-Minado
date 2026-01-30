@@ -1,0 +1,128 @@
+body {
+	font-family: "Segoe UI", Arial, sans-serif;
+	text-align: center;
+	background-color: #ffe6f2; 
+	color: #525151;
+	margin: 0;
+	padding: 0;
+}
+
+/* Estrutura geral */
+#info,
+#dados,
+#historico {
+	background: none;
+	border: none;
+	box-shadow: none;
+}
+
+/* Informações e controles */
+#info {
+	margin: 10px auto 20px;
+	padding: 10px;
+}
+
+#info p {
+	display: inline-block;
+	margin: 10px 20px;
+}
+
+/* Campos de entrada */
+#info input.nome,
+#info input.numero {
+	border: 1px solid #ff9ecb;
+	border-radius: 10px;
+	padding: 6px;
+	font-size: 14px;
+	outline: none;
+	background-color: #fff;
+	transition: 0.3s;
+}
+
+#info input.nome:focus,
+#info input.numero:focus {
+	border-color: #ff5fa2;
+	box-shadow: 0 0 5px #ff5fa2;
+}
+
+/* Botões */
+input.botao[type="button"] {
+	background: linear-gradient(135deg, #ff66b2, #ff99cc);
+	color: white;
+	border: none;
+	border-radius: 25px;
+	padding: 10px 20px;
+	font-size: 15px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 8px rgba(255, 102, 178, 0.4);
+	margin: 5px;
+}
+
+input.botao[type="button"]:hover {
+	background: linear-gradient(135deg, #ff80bf, #ffb3d9);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 12px rgba(255, 102, 178, 0.6);
+}
+
+input.botao[type="button"]:active {
+	transform: scale(0.97);
+	background: linear-gradient(135deg, #ff4da6, #ff80c0);
+}
+
+/* Dados do jogo */
+#dados {
+	margin: 15px auto;
+	width: 35%;
+	text-align: center;
+	padding: 10px;
+}
+
+#dados p {
+	display: inline-block;
+	margin: 0 20px;
+	font-size: 15px;
+}
+
+#dados span {
+	font-weight: bold;
+	color: #d47ee3;
+}
+
+/* Campo de jogo */
+#campo {
+	margin-top: 25px;
+}
+
+#campo table {
+	border-collapse: collapse;
+	margin: 20px auto;
+}
+
+#campo table tr td {
+	border: 1px solid #9763a4;
+	width: 45px;
+	height: 45px;
+	background: #d4c0e0;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+#campo table tr td:hover {
+	background: #d392d1;
+	transform: scale(1.05);
+}
+
+#campo table tr td img {
+	display: block;
+	margin: auto;
+}
+
+/* 🔹 Histórico de Partidas */
+#historico {
+	margin-top: 40px;
+	padding: 10px;
+	border-top: 2px solid #ff9ecb;
+}
