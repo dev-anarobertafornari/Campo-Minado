@@ -1,4 +1,3 @@
-
 var jogador;
 var linhas;
 var colunas;
@@ -6,294 +5,310 @@ var numBombas;
 var campo;
 var semBomba;
 var totalCelulas;
-var tempo;
 var cronometro;
 var partida;
 
-function tempo(){
+// Cronômetro
 
+function iniciarTempo() {
 	clearInterval(cronometro);
-	cronometro = setInterval(function() {
-		if(totalCelulas >= 1 && partida) {
 
-        	var tempo = document.getElementById("tempo").innerHTML;
-        	tempo = tempo.split(":");
+	cronometro = setInterval(function () {
+		if (partida) {
+			var tempoAtual = document.getElementById("tempo").innerHTML.split(":");
 
-        	tempo[0] = parseInt(tempo[0]);
-        	tempo[1] = parseInt(tempo[1]);
+			var min = parseInt(tempoAtual[0]);
+			var seg = parseInt(tempoAtual[1]);
 
-        	if(++tempo[1] == 60){
-        		tempo[1] = 0;
-        		tempo[0] += 1;
-        	}
+			seg++;
+			if (seg === 60) {
+				seg = 0;
+				min++;
+			}
 
-        	if(tempo[0] < 10) tempo[0] = "0"+tempo[0];
-        	if(tempo[1] < 10) tempo[1] = "0"+tempo[1];
+			if (min < 10) min = "0" + min;
+			if (seg < 10) seg = "0" + seg;
 
-        	document.getElementById("tempo").innerHTML = tempo[0]+":"+tempo[1];
-    	}
-	}, 1000);		
-
+			document.getElementById("tempo").innerHTML = min + ":" + seg;
+		}
+	}, 1000);
 }
+
+// Limpar Tabuleiro
 
 function limpar() {
 	var t = document.getElementById("tabela");
-	if(t != null){
-		t.parentNode.removeChild(t);
-	}
+	if (t) t.remove();
 }
+
+// Para Inicializar Células
 
 function inicializarCelulas() {
+	campo = [];
+	semBomba = [];
 
-	campo = new Array();
-	semBomba = new Array();
-
-	//Criar matriz representando campo
-	for(var i = 0; i < linhas; i++) {
-		campo[i] = new Array();
-		for(var j = 0; j < colunas; j++) {
-			var celula = new Object();
-			celula.valor = 0;
-			celula.estado = false;
-			celula.linha = i;
-			celula.coluna = j;
-			semBomba[(i*colunas) + j] = celula;
+	for (var i = 0; i < linhas; i++) {
+		campo[i] = [];
+		for (var j = 0; j < colunas; j++) {
+			var celula = {
+				valor: 0,
+				estado: false,
+				linha: i,
+				coluna: j
+			};
 			campo[i][j] = celula;
+			semBomba.push(celula);
 		}
 	}
 
-	//Colocar bombas aleatoriamente no campo
-	for(var i = 0; i < numBombas; i++) {
-		indice = Math.floor(Math.random()*semBomba.length);
-		(campo[semBomba[indice].linha][semBomba[indice].coluna]).valor = -1;
-		semBomba.splice(indice, 1);
+	for (var i = 0; i < numBombas; i++) {
+		var indice = Math.floor(Math.random() * semBomba.length);
+		var bomba = semBomba.splice(indice, 1)[0];
+		campo[bomba.linha][bomba.coluna].valor = -1;
 	}
 
-	//Definir valor das demais células sem bomba
-	for(var i = 0; i < linhas; i++) {
-		for(var j = 0; j < colunas; j++) {
-			if(campo[i][j].valor != -1) {
+	for (var i = 0; i < linhas; i++) {
+		for (var j = 0; j < colunas; j++) {
+			if (campo[i][j].valor !== -1) {
 				var totalBombas = 0;
+				var coord = [
+					[i + 1, j - 1], [i, j - 1], [i - 1, j - 1],
+					[i - 1, j], [i - 1, j + 1], [i, j + 1],
+					[i + 1, j + 1], [i + 1, j]
+				];
 
-				var coord = [[i+1, j-1], [i, j-1], [i-1, j-1], [i-1, j], 
-							[i-1, j+1], [i, j+1], [i+1, j+1], [i+1, j]];
-
-				for(var k = 0; k < 8; k++){
-					if(((coord[k][0] >= 0) && (coord[k][1] >= 0))&&((coord[k][0] < linhas) && (coord[k][1] < colunas))) 
-						if(campo[coord[k][0]][coord[k][1]].valor == -1)
-							totalBombas++;
+				for (var k = 0; k < coord.length; k++) {
+					var x = coord[k][0];
+					var y = coord[k][1];
+					if (x >= 0 && y >= 0 && x < linhas && y < colunas) {
+						if (campo[x][y].valor === -1) totalBombas++;
+					}
 				}
-
 				campo[i][j].valor = totalBombas;
-
 			}
 		}
 	}
 }
+
+// Iniciar Novo Jogo
 
 function novoJogo(n, x, y, b) {
-	if(x*y < b) {
+	if (x * y < b) {
 		alert("Número de bombas maior que o número de células!");
-	}else {
-		limpar();
+		return;
+	}
 
-		jogador = n;
-		linhas = x;
-		colunas = y;
-		numBombas = b;
-		totalCelulas = 0;
-		partida = false;
+	limpar();
 
-		inicializarCelulas();
+	jogador = n;
+	linhas = x;
+	colunas = y;
+	numBombas = b;
+	totalCelulas = 0;
+	partida = false;
 
-		//Criar tabela com as células no HTML
-		var p = document.createElement("table");
-		p.setAttribute("id", "tabela");
-		for(i = 0; i < linhas; i++) {
-			var r = document.createElement("tr");
-			for(var j = 0; j < colunas; j++) {
-				var d = document.createElement("td");
-				d.setAttribute("id", i.toString()+"-"+j.toString());
-				d.setAttribute("onclick", "clickCelula(this.id); tempo();");
+	clearInterval(cronometro);
+	document.getElementById("tempo").innerHTML = "00:00";
 
-				if(campo[i][j].valor != 0) {
-					var img = document.createElement("img");
-					img.setAttribute("src", "imagens/"+campo[i][j].valor.toString()+".png");
-					img.setAttribute("id", "i"+i.toString()+"-"+j.toString());
-					img.style.visibility = "hidden";
-					d.appendChild(img);
+	inicializarCelulas();
+
+	var tabela = document.createElement("table");
+	tabela.id = "tabela";
+
+	for (var i = 0; i < linhas; i++) {
+		var tr = document.createElement("tr");
+
+		for (var j = 0; j < colunas; j++) {
+			var td = document.createElement("td");
+			td.id = i + "-" + j;
+			td.onclick = function () {
+				clickCelula(this.id);
+				if (!partida) {
+					partida = true;
+					iniciarTempo();
 				}
+			};
 
-				r.appendChild(d);
+			if (campo[i][j].valor !== 0) {
+				var img = document.createElement("img");
+				img.src = "imagens/" + campo[i][j].valor + ".png";
+				img.id = "i" + i + "-" + j;
+				img.style.visibility = "hidden";
+				td.appendChild(img);
 			}
-			p.appendChild(r);
+
+			tr.appendChild(td);
 		}
-		
-		document.getElementById("campo").appendChild(p);
-
-		document.getElementById("restantes").innerHTML = (linhas*colunas-numBombas-totalCelulas).toString()+"/"+(linhas*colunas-numBombas).toString();
-
-		document.getElementById("tempo").innerHTML = "00:00";
+		tabela.appendChild(tr);
 	}
 
+	document.getElementById("campo").appendChild(tabela);
+	atualizarRestantes();
 }
 
-function clickCelula(idCelula) {
-	var coord = idCelula.split("-");
-	var linha = parseInt(coord[0]);
-	var coluna = parseInt(coord[1]);
+// Clicar na Célula
 
-	if(!campo[linha][coluna].estado){
+function clickCelula(id) {
+	var p = id.split("-");
+	var i = parseInt(p[0]);
+	var j = parseInt(p[1]);
+
+	if (!partida) {
 		partida = true;
-		verificarCelula(linha, coluna);
+		iniciarTempo();
+	}
+
+	if (!campo[i][j].estado) {
+		verificarCelula(i, j);
 	}
 }
 
-function clickFimDeJogo() {
-	alert("Fim de Jogo! Para jogar novamente, clique em 'Novo Jogo'.")
-}
+// Verificar Célula
 
 function verificarCelula(i, j) {
-	//Verificar se a célula possui bombas em volta para saber se deve abrir mais células
-	if(!campo[i][j].estado){
+	if (campo[i][j].estado) return;
 
-		abrirCelula(i, j);
-		totalCelulas++;
+	abrirCelula(i, j);
+	campo[i][j].estado = true;
+	totalCelulas++;
 
-		campo[i][j].estado = true;
+	if (campo[i][j].valor === 0) {
+		var coord = [
+			[i + 1, j - 1], [i, j - 1], [i - 1, j - 1],
+			[i - 1, j], [i - 1, j + 1], [i, j + 1],
+			[i + 1, j + 1], [i + 1, j]
+		];
 
-		if(campo[i][j].valor == 0){
-			var coord = [[i+1, j-1], [i, j-1], [i-1, j-1], [i-1, j], 
-						[i-1, j+1], [i, j+1], [i+1, j+1], [i+1, j]];
-
-			for(var k = 0; k < 8; k++){
-				if(((coord[k][0] >= 0) && (coord[k][1] >= 0))&&((coord[k][0] < linhas) && (coord[k][1] < colunas))){ 
-					verificarCelula(coord[k][0], coord[k][1]);
-				}
+		for (var k = 0; k < coord.length; k++) {
+			var x = coord[k][0];
+			var y = coord[k][1];
+			if (x >= 0 && y >= 0 && x < linhas && y < colunas) {
+				verificarCelula(x, y);
 			}
 		}
-
-		if(campo[i][j].valor == -1) {
-			partida = false;
-			clearInterval(cronometro);
-			fimDeJogo(false);
-		}
-
 	}
 
-	if((totCelulas == linhas*colunas - numBombas) && campo[i][j].valor != -1 && partida) {
-		partida = false;
-		clearInterval(cronometro);
+	if (campo[i][j].valor === -1) {
+		fimDeJogo(false);
+    }
+
+	if (totalCelulas === (linhas * colunas - numBombas)) {
 		fimDeJogo(true);
 	}
-	
-	document.getElementById("restantes").innerHTML = (linhas*colunas-numBombas-totCelulas).toString()+"/"+(linhas*colunas-numBombas).toString();
 
-	return;
+	atualizarRestantes();
 }
 
-function abrirCelula(linha, coluna) {
-	var celula = document.getElementById(linha.toString()+"-"+coluna.toString());
+// Para abrir a Célula
 
-	if(campo[linha][coluna].valor != 0) {
-		var img = document.getElementById("i"+linha.toString()+"-"+coluna.toString());
-		img.style.visibility = "visible";
+function abrirCelula(i, j) {
+	var td = document.getElementById(i + "-" + j);
+
+	if (campo[i][j].valor !== 0) {
+		var img = document.getElementById("i" + i + "-" + j);
+		if (img) img.style.visibility = "visible";
 	}
 
-	switch (campo[linha][coluna].valor) {
-		case -1:
-			celula.style.background = "red";
-			break;
-		case 0:
-			celula.style.background = "#9cbae3ff";
-			break;
-		default:
-			celula.style.background = "rgba(143, 183, 215, 1)";
-			break;
-	}
-
-	return;
+	td.style.background =
+		campo[i][j].valor === -1 ? "red" :
+		campo[i][j].valor === 0 ? "#9cbae3ff" :
+		"rgba(143, 183, 215, 1)";
 }
 
-function fecharCelula(linha, coluna) {
-	var celula = document.getElementById(linha.toString()+"-"+coluna.toString());
-	celula.style.background = "#cb9bb1ff";
-
-	if(campo[linha][coluna].valor != 0){
-		var img = document.getElementById("i"+linha.toString()+"-"+coluna.toString());
-		img.style.visibility = "hidden";
-	}
+function atualizarRestantes() {
+	document.getElementById("restantes").innerHTML =
+		(linhas * colunas - numBombas - totalCelulas) +
+		"/" + (linhas * colunas - numBombas);
 }
 
-function mostrar() {
-	for(var i = 0; i < linhas; i++) {
-		for(var j = 0; j < colunas; j++) {
-			abrirCelula(i, j);
-		}
-	}
-}
-
-function restaurar() {
-	for(var i = 0; i < linhas; i++) {
-		for(var j = 0; j < colunas; j++) {
-			if(!campo[i][j].estado)
-				fecharCelula(i, j);
-		}
-	}
-}
+// Fim de Jogo
 
 function fimDeJogo(vitoria) {
-	var msg;
+	partida = false;
+	clearInterval(cronometro);
 
-	if(vitoria) {
-		msg = "Vitória";
-	}else {
-		msg = "Derrota";
-	}
-
-	for(var i = 0; i < linhas; i++) {
-		for(var j = 0; j < linhas; j++) {
-			var celula = document.getElementById(i.toString()+"-"+j.toString());
-			celula.setAttribute("onclick", "clickFimDeJogo()");
-			if((campo[i][j].valor == -1) && (!vitoria))
-				abrirCelula(i, j);
+	for (var i = 0; i < linhas; i++) {
+		for (var j = 0; j < colunas; j++) {
+			var td = document.getElementById(i + "-" + j);
+			td.onclick = function () {
+				alert("Fim de jogo! Inicie uma nova partida.");
+			};
+			if (!vitoria && campo[i][j].valor === -1) abrirCelula(i, j);
 		}
 	}
-	
-	alert("Fim de Jogo! "+msg);
 
+	registrarHistorico(vitoria);
+	alert("Fim de jogo! " + (vitoria ? "Vitória 🎉" : "Derrota 💥"));
+}
+
+// Histórico
+
+function registrarHistorico(vitoria) {
 	var hist = document.createElement("div");
-	var pjogador = document.createElement("p");
-	pjogador.appendChild(document.createTextNode("Jogador: "+jogador));
-	var pdimensoes = document.createElement("p");
-	pdimensoes.appendChild(document.createTextNode("Dimensões: "+linhas.toString()+"x"+colunas.toString()));
-	var pbombas = document.createElement("p");
-	pbombas.appendChild(document.createTextNode("Bombas: "+numBombas.toString()));
-	var ptempo = document.createElement("p");
-	ptempo.appendChild(document.createTextNode("Tempo gasto: "+ document.getElementById("tempo").innerHTML));
-	var pcelulas = document.createElement("p");
-	pcelulas.appendChild(document.createTextNode("Células abertas: "+totalCelulas.toString()+" de "+(linhas*colunas).toString()));
-	var presultado = document.createElement("p");
-	var sresultado = document.createElement("span");
-	sresultado.appendChild(document.createTextNode(msg));
-	sresultado.style.fontWeight = "bold";
-	vitoria ? sresultado.style.color = "green" : sresultado.style.color = "red";
-	presultado.appendChild(document.createTextNode("Resultado: "));
-	presultado.appendChild(sresultado);
-
-	hist.appendChild(pjogador);
-	hist.appendChild(pdimensoes);
-	hist.appendChild(pbombas);
-	hist.appendChild(ptempo);
-	hist.appendChild(pcelulas);
-	hist.appendChild(presultado);
-
-	document.getElementById("registros").prepend(hist);
-
 	hist.style.border = "1px solid black";
 	hist.style.borderRadius = "20px";
-	hist.style.marginTop = "20px";
+	hist.style.margin = "20px auto";
 	hist.style.width = "30%";
-	hist.style.marginRight = "auto";
-	hist.style.marginLeft = "auto";
+
+	hist.innerHTML = `
+		<p><strong>Jogador:</strong> ${jogador}</p>
+		<p><strong>Dimensões:</strong> ${linhas}x${colunas}</p>
+		<p><strong>Bombas:</strong> ${numBombas}</p>
+		<p><strong>Tempo:</strong> ${document.getElementById("tempo").innerHTML}</p>
+		<p><strong>Células abertas:</strong> ${totalCelulas}</p>
+		<p><strong>Resultado:</strong>
+			<span style="color:${vitoria ? "green" : "red"}; font-weight:bold">
+				${vitoria ? "Vitória" : "Derrota"}
+			</span>
+		</p>
+	`;
+
+	document.getElementById("registros").prepend(hist);
 }
+ // Para mostrar onde estão as bombas
+
+function mostrar() {
+	if (!campo) return;
+
+	clearInterval(cronometro);
+
+	for (var i = 0; i < linhas; i++) {
+		for (var j = 0; j < colunas; j++) {
+			if (campo[i][j].valor !== 0) {
+				var img = document.getElementById("i" + i + "-" + j);
+				if (img) img.style.visibility = "visible";
+			}
+
+			var td = document.getElementById(i + "-" + j);
+			td.style.background =
+				campo[i][j].valor === -1 ? "red" :
+				campo[i][j].valor === 0 ? "#9cbae3ff" :
+				"rgba(143, 183, 215, 1)";
+		}
+	}
+}
+
+// Restaurar jogo já iniciado
+
+function restaurar() {
+	if (!campo) return;
+
+	partida = false;
+	clearInterval(cronometro);
+	totalCelulas = 0;
+
+	for (var i = 0; i < linhas; i++) {
+		for (var j = 0; j < colunas; j++) {
+
+			campo[i][j].estado = false;
+
+			var td = document.getElementById(i + "-" + j);
+			td.style.background = "";
+			var img = document.getElementById("i" + i + "-" + j);
+			if (img) img.style.visibility = "hidden";
+		}
+	}
+
+	atualizarRestantes();gfc 
+}
+
